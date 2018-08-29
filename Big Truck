@@ -1,0 +1,62 @@
+#include<iostream>
+#include<queue>
+#include<vector>
+#include<functional>
+using namespace std;
+typedef pair<int, int> ii;
+typedef pair<int, pair<int, int> > dil; // dist, items, location
+#define INF 32200
+int main() {
+	int n;
+	cin >> n;
+	int locations[101];
+	int mostItems = 0;
+	vector<ii> paths[101];
+	vector<int> bestDists(n + 1, INF);
+	for (int i = 1; i <= n; ++i) {
+		cin >> locations[i];
+	}
+	int r;
+	cin >> r;
+	int from, to, dist;
+	while (r--) {
+		cin >> to >> from >> dist;
+		paths[to].push_back(ii(from, dist));
+		paths[from].push_back(ii(to, dist));
+	}
+	priority_queue<dil, vector<dil>, greater<dil> > pq;
+	pq.push(dil(0, ii(locations[1], 1)));
+	while (!pq.empty()) {
+		int src = pq.top().second.second;
+		int distTotal = pq.top().first;
+		int items = pq.top().second.first;
+		pq.pop();
+		if (distTotal <= bestDists[src]) {
+			bestDists[src] = distTotal;
+			//forall the branching paths
+			for (int i = 0; i < paths[src].size(); ++i) {
+				int to = paths[src][i].first; //gohere
+				if (distTotal + paths[src][i].second <= bestDists[to]) { //to go here requires paths[src][i].second	
+					if (to == n) {
+						if (distTotal + paths[src][i].second == bestDists[n]) {
+							mostItems = max(items + locations[to], mostItems);
+						}
+						else {
+							mostItems = items + locations[to];
+						}
+					}
+					else {
+						pq.push(dil(distTotal + paths[src][i].second, ii(items + locations[to], to)));
+					}
+					bestDists[to] = distTotal + paths[src][i].second;
+				}
+			}
+		}
+	}
+	if (bestDists[n] == INF) {
+		cout << "impossible";
+	}
+	else {
+		cout << bestDists[n] << ' ' << mostItems;
+	}
+}
